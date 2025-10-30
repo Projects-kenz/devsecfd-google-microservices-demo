@@ -72,7 +72,7 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    timeout(time: 3, unit: 'MINUTES') {
+                    timeout(time: 20, unit: 'MINUTES') {
                         waitForQualityGate abortPipeline: true, credentialsId: 'sonar-token'
                     }
                 }
@@ -239,7 +239,7 @@ pipeline {
 
                         """,
                         to: 'kenzmazin67@gmail.com',
-                        from: 'kenzmazin67@gmail.com@gmail.com',
+                        from: 'kenzmazin67@gmail.com',
                         mimeType: 'text/html',
                         attachmentsPattern: 'trivy-fs-report.txt,trivy-image-frontend.json,trivy-image-frontend.txt,gosec-report.json'
                     )
@@ -248,3 +248,4 @@ pipeline {
         }
     }
 } // Closing brace for 'pipeline' block
+
