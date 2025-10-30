@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        DOCKER_NAME = 'kenzieey/frontend'
+        DOCKER_NAME = 'kenzieeiy/frontend'
         IMAGE_NAME = 'frontend'
         
     }
@@ -248,4 +248,5 @@ pipeline {
         }
     }
 } // Closing brace for 'pipeline' block
+
 
