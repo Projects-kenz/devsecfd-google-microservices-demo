@@ -27,7 +27,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/loadgenerator:latest
+        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/loadgenerator:2
         envFrom:
         - configMapRef:
             name: loadgenerator-config
