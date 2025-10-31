@@ -27,6 +27,22 @@ pipeline {
             }
         }
 
+        stage("Build & Test") {
+            steps {
+                dir('src/adservice') {
+                    sh '''
+                    # Build the application with tests and coverage
+                    ./gradlew build jacocoTestReport || ./mvnw clean package jacoco:report
+                    
+                    # Verify build artifacts exist
+                    echo "Checking for compiled classes..."
+                    find . -name "*.class" | head -5
+                    ls -la target/classes/ || ls -la build/classes/
+                    '''
+                }
+            }
+        }
+
         // --- SAST: SonarQube for Java ---
         stage("SonarQube Analysis") {
             steps {
@@ -63,20 +79,7 @@ pipeline {
             }
         }
 
-        // --- Build & Test ---
-        stage("Build & Test") {
-            steps {
-                dir('src/adservice') {
-                    sh '''
-                    # Build the application
-                    ./gradlew build -x test || ./mvnw clean compile -DskipTests
-                    
-                    # Run tests with coverage
-                    ./gradlew test jacocoTestReport || ./mvnw test jacoco:report
-                    '''
-                }
-            }
-        }
+        
 
         // --- OWASP Dependency Check ---
         stage("OWASP Dependency Scan") {
@@ -242,3 +245,4 @@ pipeline {
         }
     }
 }
+
