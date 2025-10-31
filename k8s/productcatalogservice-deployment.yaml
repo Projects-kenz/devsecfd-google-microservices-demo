@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/productcatalogservice:4
+        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/productcatalogservice:7
         ports:
         - containerPort: 3550
         envFrom:
