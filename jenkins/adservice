@@ -33,7 +33,7 @@ pipeline {
                    sh '''
                    # Fix permissions first
                    chmod +x gradlew
-                   chmod +x mvnw
+                  
             
                    # Build the application with tests and coverage
                    ./gradlew build jacocoTestReport || ./mvnw clean package jacoco:report
@@ -249,5 +249,6 @@ pipeline {
         }
     }
 }
+
 
 
