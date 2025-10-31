@@ -239,7 +239,7 @@ pipeline {
         stage('Update manifest Files') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                    sh '''
+                    sh """
                     git config user.email "kenzmazin67@gmail.com"
                     git config user.name "$GIT_USER"
 
@@ -251,7 +251,7 @@ pipeline {
                     git add k8s/frontend/deployment.yaml
                     git commit -m "CI: Update frontend image to ${BUILD_NUMBER}"
                     git push https://${GIT_USER}:${GIT_TOKEN}@github.com/Projects-kenz/devsecfd-google-shop-microservices.git main
-                    '''
+                    """
                 }
            }
         }  
@@ -287,6 +287,7 @@ pipeline {
         }
     }
 } // Closing brace for 'pipeline' block
+
 
 
 
