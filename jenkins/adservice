@@ -28,24 +28,21 @@ pipeline {
         }
 
         stage("Build & Test") {
-          steps {
+            steps {
                dir('src/adservice') {
-                   sh '''
-                   # Fix permissions first
-                   chmod +x gradlew
-                  
+                  sh '''
+                  # Fix permissions and build with tests
+                  chmod +x gradlew
+                  ./gradlew build test
             
-                   # Build the application with tests and coverage
-                   ./gradlew build jacocoTestReport || ./mvnw clean package jacoco:report
-            
-                   # Verify build artifacts exist
-                   echo "Checking for compiled classes..."
-                   find . -name "*.class" | head -5
-                   ls -la target/classes/ || ls -la build/classes/
-                   '''
-               }
-            }
-       }
+                  # Verify build artifacts exist
+                  echo "Checking for compiled classes..."
+                  find . -name "*.class" | head -5
+                  ls -la build/classes/
+                  '''
+              }
+          }
+      }
 
         // --- SAST: SonarQube for Java ---
         stage("SonarQube Analysis") {
@@ -57,7 +54,7 @@ pipeline {
                           -Dsonar.projectKey=adservice \
                           -Dsonar.projectName=adservice \
                           -Dsonar.sources=src \
-                          -Dsonar.java.binaries=target/classes \
+                          -Dsonar.java.binaries=build/classes \
                           -Dsonar.language=java \
                           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                         '''
@@ -249,6 +246,7 @@ pipeline {
         }
     }
 }
+
 
 
 
