@@ -15,7 +15,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: server
-          image: harishnshetty/checkoutservice:latest
+          image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/checkoutservice:3
           ports:
           - containerPort: 5050
           readinessProbe:
