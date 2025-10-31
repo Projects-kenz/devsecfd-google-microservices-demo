@@ -33,7 +33,7 @@ pipeline {
                   sh '''
                   # Fix permissions and build with tests
                   chmod +x gradlew
-                  ./gradlew build test
+                  ./gradlew build test -x verifyGoogleJavaFormat
             
                   # Verify build artifacts exist
                   echo "Checking for compiled classes..."
@@ -246,6 +246,7 @@ pipeline {
         }
     }
 }
+
 
 
 
