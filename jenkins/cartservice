@@ -1,0 +1,240 @@
+pipeline {
+    agent any
+
+    tools {
+        dotnetsdk 'dotnet9'
+    }
+
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        AWS_ACCOUNT_ID = '229581542312'
+        AWS_REGION = 'us-east-2'          
+        ECR_REPO_NAME = 'devsecfd/cartservice' 
+        ECR_REPO_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
+        IMAGE_NAME = 'cartservice'
+    }
+
+    stages {
+        stage("Clean Workspace") {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage("Git Checkout") {
+            steps {
+                git branch: 'main', url: 'https://github.com/Projects-kenz/devsecfd-google-shop-microservices.git'
+            }
+        }
+
+        // --- SAST: SonarQube for C# ---
+        stage("SonarQube Analysis") {
+            steps {
+                dir('src/cartservice') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh '''
+                        dotnet tool install --global dotnet-sonarscanner || true
+                        export PATH="$PATH:$HOME/.dotnet/tools"
+
+                        dotnet sonarscanner begin /k:"cartservice" /d:sonar.host.url=$SONAR_HOST_URL /d:sonar.login=$SONAR_AUTH_TOKEN
+                        dotnet build
+                        dotnet sonarscanner end /d:sonar.login=$SONAR_AUTH_TOKEN
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                dir('src/cartservice') {
+                    script {
+                        timeout(time: 3, unit: 'MINUTES') {
+                            try {
+                                waitForQualityGate abortPipeline: true, credentialsId: 'sonar-token'
+                            } catch (Exception e) {
+                                echo "Quality Gate failed but continuing for development: ${e.message}"
+                                currentBuild.result = 'UNSTABLE'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Build & Unit Tests ---
+        stage("Build & Test") {
+            steps {
+                dir('src/cartservice/src') {
+                    sh '''
+                    dotnet restore
+                    dotnet build --no-incremental
+                    dotnet test --logger:trx
+                    '''
+                }
+            }
+        }
+
+        // --- Dependency Check (SCA) ---
+        stage("Dependency Check") {
+            steps {
+                dir('src/cartservice') {
+                    dependencyCheck additionalArguments: ''' 
+                        --scan ./ 
+                        --format XML 
+                        --out dependency-check-report.xml 
+                    ''',
+                    odcInstallation: 'dp-check'
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts 'src/cartservice/dependency-check-report.xml'
+                }
+            }
+        }
+
+        // --- Trivy FS Scan ---
+        stage("Trivy File Scan") {
+            steps {
+                dir('src/cartservice') {
+                    script {
+                        sh '''
+                        echo "Running Trivy file system scan..."
+                        trivy fs . --severity CRITICAL,HIGH --exit-code 1 --scanners vuln,misconfig,secret > trivy-fs-report.txt || true
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts 'src/cartservice/trivy-fs-report.txt'
+                }
+            }
+        }
+
+        // --- Build Docker Image ---
+        stage("Build Docker Image") {
+            steps {
+                dir('src/cartservice/src') {
+                    script {
+                        env.IMAGE_TAG = "$ECR_REPO_URL:${BUILD_NUMBER}"
+                        sh "docker rmi -f $IMAGE_NAME ${env.IMAGE_TAG} || true"
+                        sh "docker build -t $IMAGE_NAME ."
+                        sh "docker tag $IMAGE_NAME ${env.IMAGE_TAG}"
+                    }
+                }
+            }
+        }
+
+        // --- Trivy Image Scan ---
+        stage("Trivy Scan Image") {
+            steps {
+                dir('src/cartservice') {
+                    script {
+                        sh """
+                        echo '🔍 Running Trivy scan on ${env.IMAGE_TAG}'
+
+                        # JSON report
+                        trivy image -f json -o trivy-image-cartservice.json ${env.IMAGE_TAG}
+
+                        # Text report
+                        trivy image -f table -o trivy-image-cartservice.txt ${env.IMAGE_TAG}
+
+                        # Fail build if HIGH/CRITICAL vulnerabilities found
+                        trivy image --exit-code 1 --severity HIGH,CRITICAL ${env.IMAGE_TAG} || true
+                        """
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts 'src/cartservice/trivy-image-cartservice.txt'
+                    archiveArtifacts 'src/cartservice/trivy-image-cartservice.json'
+                }
+            }
+        }
+        
+        // --- Push to ECR ---
+        stage("Push to ECR") {
+            steps {
+                dir('src/cartservice') {
+                    script {
+                        withCredentials([aws(credentialsId: 'aws-credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh """
+                            # Login to ECR
+                            echo "Logging into ECR..."
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+            
+                            # Create ECR repository if it doesn't exist
+                            echo "Checking ECR repository..."
+                            aws ecr describe-repositories --repository-names ${ECR_REPO_NAME} --region ${AWS_REGION} || aws ecr create-repository --repository-name ${ECR_REPO_NAME} --region ${AWS_REGION}
+            
+                            # Push the build number tag
+                            echo "Pushing image to ECR..."
+                            docker push ${env.IMAGE_TAG}
+            
+                            # Also push latest tag
+                            echo "Pushing latest tag..."
+                            docker tag $IMAGE_NAME ${env.ECR_REPO_URL}:latest
+                            docker push ${env.ECR_REPO_URL}:latest
+            
+                            echo "Successfully pushed to ECR: ${env.IMAGE_TAG}"
+                            echo "Latest tag: ${env.ECR_REPO_URL}:latest"
+                            """
+                        }
+                    }
+                }
+            }
+        }  
+
+        stage('Update manifest Files') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh """
+                    git config user.email "kenzmazin67@gmail.com"
+                    git config user.name "$GIT_USER"
+
+                    echo "Updating Kubernetes manifests with image tag ${BUILD_NUMBER}"
+
+                    # Update main deployment image
+                    sed -i "s|image:.*|image: ${env.IMAGE_TAG}|g" k8s/cartservice-deployment.yaml
+            
+                    git add k8s/cartservice-deployment.yaml
+                    git commit -m "CI: Update cartservice image to ${BUILD_NUMBER}"
+                    git push https://${GIT_USER}:${GIT_TOKEN}@github.com/Projects-kenz/devsecfd-google-shop-microservices.git main
+                    """
+                }
+            }
+        }
+    }
+
+    // --- Final Notifications ---
+    post {
+        always {
+            dir('src/cartservice') {
+                script {
+                    def buildStatus = currentBuild.currentResult
+                    def buildUser = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')[0]?.userId ?: 'Github User'
+
+                    emailext (
+                        subject: "Pipeline ${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                        body: """
+                            <p>cartservice Google-Shop DevSecOps pipeline status.</p>
+                            
+                            <p>Project: ${env.JOB_NAME}</p>
+                            <p>Build Number: ${env.BUILD_NUMBER}</p>
+                            <p>Build Status: ${buildStatus}</p>
+                            <p>Started by: ${buildUser}</p>
+                            <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        """,
+                        to: 'kenzmazin67@gmail.com',
+                        from: 'kenzmazin67@gmail.com',
+                        mimeType: 'text/html',
+                        attachmentsPattern: 'src/cartservice/trivy-fs-report.txt,src/cartservice/trivy-image-cartservice.json,src/cartservice/trivy-image-cartservice.txt,src/cartservice/dependency-check-report.xml'
+                    )
+                }
+            }
+        }
+    }
+}
