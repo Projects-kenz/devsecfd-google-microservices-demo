@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image:  229581542312.dkr.ecr.us-east-2.amazonaws.com/paymentservice:latest
+        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/paymentservice:6
         ports:
         - containerPort: 50051
         envFrom:
