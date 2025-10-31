@@ -226,12 +226,13 @@ pipeline {
                         to: 'kenzmazin67@gmail.com',
                         from: 'kenzmazin67@gmail.com',
                         mimeType: 'text/html',
-                        attachmentsPattern: 'src/paymentservice/trivy-fs-report.txt,src/paymentservice/trivy-image-paymentservice.json,src/paymentservice/trivy-image-paymentservice.txt,src/paymentservice/dependency-check-report.xml'
+                        attachmentsPattern: 'trivy-fs-report.txt,trivy-image-paymentservice.json,trivy-image-paymentservice.txt,dependency-check-report.xml'
                     )
                 }
             }
         }
     }
 }
+
 
 
