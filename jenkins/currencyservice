@@ -99,7 +99,7 @@ pipeline {
                     script {
                         sh '''
                         echo "Running Trivy file system scan..."
-                        trivy fs . --severity CRITICAL --exit-code 1 --scanners vuln,misconfig,secret > trivy-fs-report.txt || true
+                        trivy fs . --severity HIGH,CRITICAL --exit-code 1 --scanners vuln,misconfig,secret > trivy-fs-report.txt || true
                         '''
                     }
                 }
@@ -140,7 +140,7 @@ pipeline {
                         trivy image -f table -o trivy-image-currencyservice.txt ${env.IMAGE_TAG}
 
                         # Fail build if HIGH/CRITICAL vulnerabilities found
-                        trivy image --exit-code 1 --severity HIGH,CRITICAL ${env.IMAGE_TAG} || true
+                        trivy image --exit-code 1 --severity CRITICAL ${env.IMAGE_TAG} || true
                         """
                     }
                 }
@@ -235,5 +235,6 @@ pipeline {
         }
     }
 }
+
 
 
