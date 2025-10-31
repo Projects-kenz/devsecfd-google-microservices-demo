@@ -238,7 +238,7 @@ pipeline {
                     # Update main deployment image
                     sed -i "s|image:.*|image: ${env.IMAGE_TAG}|g" k8s/shippingservice/deployment.yaml
             
-                    git add k8s/shippingservice/deployment.yaml
+                    git add k8s/shippingservice-deployment.yaml
                     git commit -m "CI: Update shippingservice image to ${BUILD_NUMBER}"
                     git push https://${GIT_USER}:${GIT_TOKEN}@github.com/Projects-kenz/devsecfd-google-shop-microservices.git main
                     """
@@ -276,3 +276,4 @@ pipeline {
         }
     }
 } // Closing brace for 'pipeline' block
+
