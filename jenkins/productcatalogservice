@@ -211,7 +211,7 @@ pipeline {
             steps {
                 dir('src/productcatalogservice') {
                     script {
-                        withCredentials([aws(credentialsId: 'aws-credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                         withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             sh """
                             # Login to ECR
                             echo "Logging into ECR..."
@@ -290,4 +290,5 @@ pipeline {
         }
     }
 } // Closing brace for 'pipeline' block
+
 
