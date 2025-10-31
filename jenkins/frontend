@@ -7,7 +7,10 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        DOCKER_NAME = 'kenzieeiy/frontend'
+        AWS_ACCOUNT_ID = '229581542312' 
+        AWS_REGION = 'us-east-2'          
+        ECR_REPO_NAME = 'devsecfd/frontend' 
+        ECR_REPO_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
         IMAGE_NAME = 'frontend'
         
     }
@@ -21,7 +24,7 @@ pipeline {
 
         stage("Git Checkout") {
             steps {
-                git branch: 'main', url: 'https://github.com/Projects-kenz/devsecfd-google-microservices-demo.git'
+                git branch: 'main', url: 'https://github.com/Projects-kenz/devsecfd-google-microservices.git'
             }
         }
 
@@ -166,7 +169,7 @@ pipeline {
             steps {
                 dir('src/frontend') {
                     script {
-                        env.IMAGE_TAG = "$DOCKER_NAME:${BUILD_NUMBER}"
+                        env.IMAGE_TAG = "$ECR_REPO_URL:${BUILD_NUMBER}"
 
                         //  cleanup THE previous DOCKER IMAGE so it will not affect disk by aggregating
                         sh "docker rmi -f $IMAGE_NAME ${env.IMAGE_TAG} || true"
@@ -177,25 +180,9 @@ pipeline {
                 }
             }
         }
-        stage("Tag & Push to DockerHub") {
-            steps {
-                dir('src/frontend') {
-                    script {
-                        withCredentials([string(credentialsId: 'docker-cred', variable: 'dockerpwd')]) {
-                            sh "docker login -u kenzieeiy -p ${dockerpwd}"
-                            sh "docker tag $IMAGE_NAME ${env.IMAGE_TAG}"
-                            sh "docker push ${env.IMAGE_TAG}"
 
-                            // Also push latest
-                            sh "docker tag $IMAGE_NAME $DOCKER_NAME:latest"
-                            sh "docker push $DOCKER_NAME:latest"
-                        }
-                    }
-                }
-            }
-        }
 
-        stage("Trivy Scan Image") {
+         stage("Trivy Scan Image") {
             steps {
                 dir('src/frontend') {
                     script {
@@ -216,7 +203,59 @@ pipeline {
             }
            
         } 
-    } 
+        
+        stage("Push to ECR") {
+            steps {
+                dir('src/frontend') {
+                    script {
+                        withCredentials([aws(credentialsId: 'aws-credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh """
+                            # Login to ECR
+                            echo "Logging into ECR..."
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+            
+                            # Create ECR repository if it doesn't exist
+                            echo "Checking ECR repository..."
+                            aws ecr describe-repositories --repository-names ${ECR_REPO_NAME} --region ${AWS_REGION} || aws ecr create-repository --repository-name ${ECR_REPO_NAME} --region ${AWS_REGION}
+            
+                            # Push the build number tag
+                            echo "Pushing image to ECR..."
+                            docker push ${env.IMAGE_TAG}
+            
+                            # Also push latest tag
+                            echo "Pushing latest tag..."
+                            docker tag $IMAGE_NAME ${env.ECR_REPO_URL}:latest
+                            docker push ${env.ECR_REPO_URL}:latest
+            
+                            echo "Successfully pushed to ECR: ${env.IMAGE_TAG}"
+                            echo "Latest tag: ${env.ECR_REPO_URL}:latest"
+                            """
+                        }
+                    }
+                }
+            }
+        }  
+
+        stage('Update manifest Files') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh '''
+                    git config user.email "kenzmazin67@gmail.com"
+                    git config user.name "$GIT_USER"
+
+                    echo "Updating Kubernetes manifests with image tag ${BUILD_NUMBER}"
+
+                    # Update main deployment image
+                    sed -i "s|image:.*|image: ${env.IMAGE_TAG}|g" k8s/frontend/deployment.yaml
+            
+                    git add k8s/frontend/deployment.yaml
+                    git commit -m "CI: Update frontend image to ${BUILD_NUMBER}"
+                    git push https://${GIT_USER}:${GIT_TOKEN}@github.com/Projects-kenz/devsecfd-google-microservices.git main
+                    '''
+                }
+             }
+           }  // <- This closes Update manifest Files stage
+        }
 
     // Reports and informing the build details
     post {
@@ -241,12 +280,13 @@ pipeline {
                         to: 'kenzmazin67@gmail.com',
                         from: 'kenzmazin67@gmail.com',
                         mimeType: 'text/html',
-                        attachmentsPattern: 'trivy-fs-report.txt,trivy-image-frontend.json,trivy-image-frontend.txt,gosec-report.json'
+                        attachmentsPattern: 'src/frontend/trivy-fs-report.txt,src/frontend/trivy-image-frontend.json,src/frontend/trivy-image-frontend.txt,gosec-report.json'
                     )
                 }
             }
         }
     }
 } // Closing brace for 'pipeline' block
+
 
 
