@@ -77,8 +77,6 @@ pipeline {
                 dir('src/paymentservice') {
                     dependencyCheck additionalArguments: '''
                         --scan ./ 
-                        --enableYarnAudit 
-                        --enableNodeAudit 
                         --format XML
                         --out dependency-check-report.xml
                     ''',
@@ -235,3 +233,4 @@ pipeline {
         }
     }
 }
+
