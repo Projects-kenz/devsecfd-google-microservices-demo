@@ -77,8 +77,8 @@ pipeline {
                 dir('src/currencyservice') {
                     dependencyCheck additionalArguments: '''
                         --scan ./ 
-                        --disableYarnAudit 
-                        --disableNodeAudit 
+                        --enableYarnAudit 
+                        --enableNodeAudit 
                         --format XML
                         --out dependency-check-report.xml
                     ''',
@@ -235,3 +235,4 @@ pipeline {
         }
     }
 }
+
