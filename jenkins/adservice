@@ -28,20 +28,24 @@ pipeline {
         }
 
         stage("Build & Test") {
-            steps {
-                dir('src/adservice') {
-                    sh '''
-                    # Build the application with tests and coverage
-                    ./gradlew build jacocoTestReport || ./mvnw clean package jacoco:report
-                    
-                    # Verify build artifacts exist
-                    echo "Checking for compiled classes..."
-                    find . -name "*.class" | head -5
-                    ls -la target/classes/ || ls -la build/classes/
-                    '''
-                }
+          steps {
+               dir('src/adservice') {
+                   sh '''
+                   # Fix permissions first
+                   chmod +x gradlew
+                   chmod +x mvnw
+            
+                   # Build the application with tests and coverage
+                   ./gradlew build jacocoTestReport || ./mvnw clean package jacoco:report
+            
+                   # Verify build artifacts exist
+                   echo "Checking for compiled classes..."
+                   find . -name "*.class" | head -5
+                   ls -la target/classes/ || ls -la build/classes/
+                   '''
+               }
             }
-        }
+       }
 
         // --- SAST: SonarQube for Java ---
         stage("SonarQube Analysis") {
@@ -245,4 +249,5 @@ pipeline {
         }
     }
 }
+
 
