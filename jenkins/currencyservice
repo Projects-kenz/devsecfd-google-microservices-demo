@@ -76,9 +76,7 @@ pipeline {
             steps {
                 dir('src/currencyservice') {
                     dependencyCheck additionalArguments: '''
-                        --scan ./ 
-                        --disableYarnAudit 
-                        --disableNodeAudit 
+                        --scan ./  
                         --format XML
                         --out dependency-check-report.xml
                     ''',
@@ -228,13 +226,14 @@ pipeline {
                         to: 'kenzmazin67@gmail.com',
                         from: 'kenzmazin67@gmail.com',
                         mimeType: 'text/html',
-                        attachmentsPattern: 'src/currencyservice/trivy-fs-report.txt,src/currencyservice/trivy-image-currencyservice.json,src/currencyservice/trivy-image-currencyservice.txt,src/currencyservice/dependency-check-report.xml'
+                        attachmentsPattern: 'trivy-fs-report.txt,trivy-image-currencyservice.json,trivy-image-currencyservice.txt,dependency-check-report.xml'
                     )
                 }
             }
         }
     }
 }
+
 
 
 
