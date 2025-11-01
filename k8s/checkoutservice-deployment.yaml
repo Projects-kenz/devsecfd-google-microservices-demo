@@ -18,6 +18,16 @@ spec:
           image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/checkoutservice:3
           ports:
           - containerPort: 5050
+          envFrom:
+          - configMapRef:
+              name: checkoutservice-config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           readinessProbe:
             tcpSocket:
               port: 5050
