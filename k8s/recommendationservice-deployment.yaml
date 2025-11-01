@@ -20,13 +20,21 @@ spec:
         ports:
         - containerPort: 8080
         readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         envFrom:
         - configMapRef:
             name: recommendationservice-config
