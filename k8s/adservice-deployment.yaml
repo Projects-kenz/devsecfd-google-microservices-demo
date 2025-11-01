@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: 229581542312.dkr.ecr.us-east-2.amazonaws.com/devsecfd/adservice:7
+        image: harishnshetty/adservice:latest
         ports:
         - containerPort: 9555
         envFrom:
@@ -45,5 +45,3 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:9555"]
