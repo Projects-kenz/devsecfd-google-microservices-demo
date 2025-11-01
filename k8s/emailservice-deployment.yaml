@@ -35,13 +35,21 @@ spec:
         - configMapRef:
             name: emailservice-config
         readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
           periodSeconds: 5
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:8080"]
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         resources:
           requests:
             cpu: 50m
