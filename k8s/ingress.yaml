@@ -7,7 +7,7 @@ metadata:
     alb.ingress.kubernetes.io/load-balancer-name: shop-ns-alb
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
-
+    alb.ingress.kubernetes.io/group.name: easyshop-app-lb
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:229581542312:certificate/070d713c-b4df-4671-98bb-2b810e3ba6b7
     alb.ingress.kubernetes.io/ssl-redirect: '443'
 spec:
