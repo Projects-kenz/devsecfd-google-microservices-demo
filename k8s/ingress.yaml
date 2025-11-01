@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: shop.kenzopsify.xyz
+    - host: shop.kenzopsify.site
       http:
         paths:
           - path: /
