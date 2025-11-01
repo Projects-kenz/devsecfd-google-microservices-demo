@@ -19,18 +19,18 @@ spec:
           ports:
           - containerPort: 5050
           readinessProbe:
-            exec:
-              command: ["/bin/grpc_health_probe", "-addr=:5050"]
+            tcpSocket:
+              port: 5050
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
           livenessProbe:
-            exec:
-              command: ["/bin/grpc_health_probe", "-addr=:5050"]
-          envFrom:
-          - configMapRef:
-              name: checkoutservice-config
-          resources:
-            requests:
-              cpu: 50m
-              memory: 32Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
+            tcpSocket:
+              port: 5050
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
