@@ -23,11 +23,22 @@ spec:
         - configMapRef:
             name: productcatalogservice-config
         readinessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:3550"]
+          tcpSocket:
+            port: 3550
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         livenessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:3550"]
+          tcpSocket:
+            port: 3550
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
         resources:
           requests:
             cpu: 50m
