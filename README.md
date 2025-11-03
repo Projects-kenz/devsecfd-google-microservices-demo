@@ -1,12 +1,12 @@
 
-> #🚧 **Project Documentation In Progress**
-> ##The existing README originates from the upstream project I forked — my own documentation will be added soon.
->
-> 
-
-
-
-
+ #🚧 **Project Documentation In Progress**  
+ ##The existing README originates from the upstream project I forked — my own documentation will be added soon.  
+  
+   
+  
+  
+  
+  
 <!-- <p align="center">
 <img src="/src/frontend/static/icons/Hipster_HeroLogoMaroon.svg" width="300" alt="Online Boutique" />
 </p> -->
