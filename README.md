@@ -9,8 +9,9 @@ The application is a web-based e-commerce platform where users can browse produc
 ## Rough Diagrams of Projects
 **Diagram1(Infra POV)**
 ![PRODEVSECFD (1)](https://github.com/user-attachments/assets/688fc32d-9171-4f66-8448-4b554a8d585a) 
---- 
-  
+   
+
+      
 **Diagram2(DevOps POV)**  
 ![PRODEVSECFD-D](https://github.com/user-attachments/assets/73f4f2c2-f5fa-46ef-9563-cf6935e1ae27)  
 
