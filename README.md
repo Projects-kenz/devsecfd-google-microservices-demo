@@ -121,31 +121,31 @@ Each microservice has its own Jenkinsfile implementing the following stages:
 ---
 ## Operational Snapshots  
   
-#### Route53 Records  
+### Route53 Records  
 <img width="1919" height="1079" alt="Screenshot 2025-11-02 072240" src="https://github.com/user-attachments/assets/dc6f0553-b841-4642-8c22-0904961d39f5" />  
   
 
-#### ArgoCD  
+### ArgoCD  
 <img width="1918" height="1078" alt="Screenshot 2025-11-01 215552" src="https://github.com/user-attachments/assets/785866aa-05a6-45d2-b37b-a8b56d7fd0b5" />  
   
 
-#### Boutique Shop  
+### Boutique Shop  
 <img width="1918" height="1078" alt="Screenshot 2025-11-01 214950" src="https://github.com/user-attachments/assets/3a65487d-05e8-4f80-b968-fde88ea7aa95" />  
   
 
-#### Grafana  
+### Grafana  
 <img width="1903" height="1077" alt="Screenshot 2025-11-01 214832" src="https://github.com/user-attachments/assets/3befd0a5-68ca-43dc-8628-8b12e01abe32" />   
   
 
-#### Prometheus  
+### Prometheus  
 <img width="1918" height="1078" alt="Screenshot 2025-11-01 215655" src="https://github.com/user-attachments/assets/66cd2e55-c3c8-481d-be90-51be2d47b916" />  
 
   
-#### AlertManager
+### AlertManager
 <img width="1918" height="1078" alt="Screenshot 2025-11-01 215747" src="https://github.com/user-attachments/assets/a674dda1-50cc-4650-ab72-aa45c0f77187" />  
   
 
-#### Kibana  
+### Kibana  
 <img width="1918" height="1078" alt="Screenshot 2025-11-02 042203" src="https://github.com/user-attachments/assets/10675f71-3a5d-4d11-acfb-2d310ad41398" />
 
 For more Operational Snapshots Refer: **SNAPSHOT.md**
